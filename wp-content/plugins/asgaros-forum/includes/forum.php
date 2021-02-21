@@ -3,7 +3,7 @@
 if (!defined('ABSPATH')) exit;
 
 class AsgarosForum {
-    var $version = '1.15.9';
+    var $version = '1.15.10';
     var $executePlugin = false;
     var $db = null;
     var $tables = null;
@@ -68,6 +68,7 @@ class AsgarosForum {
         'enable_mentioning'                 => true,
         'enable_mentioning_suggestions'     => true,
         'enable_reactions'                  => true,
+        'reactions_show_names'              => true,
         'enable_search'                     => true,
         'enable_profiles'                   => true,
         'enable_memberslist'                => true,
@@ -82,6 +83,7 @@ class AsgarosForum {
         'reports_enabled'                   => true,
         'reports_notifications'             => true,
         'memberslist_loggedin_only'         => false,
+        'memberslist_filter_siteadmins'     => false,
         'show_login_button'                 => true,
         'show_logout_button'                => true,
         'show_register_button'              => true,
@@ -149,7 +151,8 @@ class AsgarosForum {
         'reputation_level_2_posts'          => 25,
         'reputation_level_3_posts'          => 100,
         'reputation_level_4_posts'          => 250,
-        'reputation_level_5_posts'          => 1000
+        'reputation_level_5_posts'          => 1000,
+        'activity_timestamp_format'         => 'relative',
     );
     var $options_editor = array(
         'media_buttons' => false,
@@ -1033,9 +1036,50 @@ class AsgarosForum {
 
         if ($posts) {
             $this->incrementTopicViews();
+            $this->polls->render_poll($this->current_topic);
+            $this->render_sticky_panel();
 
-            require('views/topic.php');
+            echo '<div class="pages-and-menu">';
+                $paginationRendering = $this->pagination->renderPagination($this->tables->posts, $this->current_topic);
+                echo $paginationRendering;
+                echo $this->show_topic_menu();
+                echo '<div class="clear"></div>';
+            echo '</div>';
+
+            echo '<div class="title-element"></div>';
+
+            $counter = 0;
+            $topicStarter = $this->get_topic_starter($this->current_topic);
+            foreach ($posts as $post) {
+                require('views/post-element.php');
+            }
+            $this->editor->showEditor('addpost', true);
+
+            echo '<div class="pages-and-menu">';
+                echo $paginationRendering;
+                echo $this->show_topic_menu(false);
+                echo '<div class="clear"></div>';
+            echo '</div>';
         } else {
+            // Render delete-button for empty topics.
+            $current_user_id = get_current_user_id();
+            $menu = '';
+
+            if ($this->permissions->can_delete_topic($current_user_id, $this->current_topic)) {
+                $menu .= '<a class="button button-red" href="'.$this->get_link('topic', $this->current_topic, array('delete_topic' => 1)).'" onclick="return confirm(\''.__('Are you sure you want to remove this?', 'asgaros-forum').'\');">';
+                    $menu .= '<span class="menu-icon fas fa-trash-alt"></span>';
+                    $menu .= __('Delete', 'asgaros-forum');
+                $menu .= '</a>';
+            }
+
+            $menu = (!empty($menu)) ? '<div class="forum-menu">'.$menu.'</div>' : $menu;
+
+            echo '<div class="pages-and-menu">';
+                echo $menu;
+                echo '<div class="clear"></div>';
+            echo '</div>';
+
+            // Show notice that this topic has no posts.
             $this->render_notice(__('Sorry, but there are no posts.', 'asgaros-forum'));
         }
     }
@@ -1426,7 +1470,7 @@ class AsgarosForum {
                 $output .= '&nbsp;';
                 $output .= '<a href="'.$post_link.'">'.esc_html($this->cut_string(stripslashes($lastpost->name), 34)).'</a>';
                 $output .= '&nbsp;&middot;&nbsp;';
-                $output .= '<a href="'.$post_link.'">'.sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($lastpost->date), current_time('timestamp'))).'</a>';
+                $output .= '<a href="'.$post_link.'">'.$this->get_activity_timestamp($lastpost->date).'</a>';
                 $output .= '&nbsp;&middot;&nbsp;';
                 $output .= $this->getUsername($lastpost->author_id);
             } else {
@@ -1439,7 +1483,7 @@ class AsgarosForum {
                 $output .= '<div class="forum-poster-summary">';
                 $output .= '<a href="'.$post_link.'">'.esc_html($this->cut_string(stripslashes($lastpost->name), 25)).'</a><br>';
                 $output .= '<small>';
-                $output .= '<a href="'.$post_link.'">'.sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($lastpost->date), current_time('timestamp'))).'</a>';
+                $output .= '<a href="'.$post_link.'">'.$this->get_activity_timestamp($lastpost->date).'</a>';
                 $output .= '<span>&nbsp;&middot;&nbsp;</span>';
                 $output .= $this->getUsername($lastpost->author_id);
                 $output .= '</small>';
@@ -1459,32 +1503,35 @@ class AsgarosForum {
     }
 
     function render_lastpost_in_topic($topic_id, $compact = false) {
-        $lastpost = $this->get_lastpost_in_topic($topic_id);
         $output = '';
-        $post_link = $this->rewrite->get_post_link($lastpost->id, $lastpost->parent_id);
+        $lastpost = $this->get_lastpost_in_topic($topic_id);
 
-        if ($compact === true) {
-            $output .= __('Last post:', 'asgaros-forum');
-            $output .= '&nbsp;';
-            $output .= '<a href="'.$post_link.'">'.sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($lastpost->date), current_time('timestamp'))).'</a>';
-            $output .= '&nbsp;&middot;&nbsp;';
-            $output .= $this->getUsername($lastpost->author_id);
+        // Ensure that a lastpost exists. This is a required check in case a topic is empty due to problems during post-creation.
+        if (!empty($lastpost)) {
+            $post_link = $this->rewrite->get_post_link($lastpost->id, $lastpost->parent_id);
 
-        } else {
-            // Avatar
-            if ($this->options['enable_avatars']) {
-                $output .= '<div class="topic-poster-avatar">'.get_avatar($lastpost->author_id, 40, '', '', array('force_display' => true)).'</div>';
+            if ($compact === true) {
+                $output .= __('Last post:', 'asgaros-forum');
+                $output .= '&nbsp;';
+                $output .= '<a href="'.$post_link.'">'.$this->get_activity_timestamp($lastpost->date).'</a>';
+                $output .= '&nbsp;&middot;&nbsp;';
+                $output .= $this->getUsername($lastpost->author_id);
+            } else {
+                // Avatar
+                if ($this->options['enable_avatars']) {
+                    $output .= '<div class="topic-poster-avatar">'.get_avatar($lastpost->author_id, 40, '', '', array('force_display' => true)).'</div>';
+                }
+
+                // Summary
+                $output .= '<div class="forum-poster-summary">';
+                $output .= '<a href="'.$post_link.'">'.$this->get_activity_timestamp($lastpost->date).'</a><br>';
+                $output .= '<small>';
+                $output .= $this->getUsername($lastpost->author_id);
+                $output .= '</small>';
+                $output .= '</div>';
             }
-
-            // Summary
-            $output .= '<div class="forum-poster-summary">';
-            $output .= '<a href="'.$post_link.'">'.sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($lastpost->date), current_time('timestamp'))).'</a><br>';
-            $output .= '<small>';
-            $output .= $this->getUsername($lastpost->author_id);
-            $output .= '</small>';
-            $output .= '</div>';
         }
-
+        
         return $output;
     }
 
@@ -1502,6 +1549,20 @@ class AsgarosForum {
 
     function current_time() {
         return current_time('Y-m-d H:i:s');
+    }
+
+    // Returns the timestamp of an activity based on the settings (relative or actual timestamp).
+    function get_activity_timestamp($timestamp, $force = false) {
+        $timestamp_mode = ($force === false) ? $this->options['activity_timestamp_format'] : $force;
+
+        switch ($timestamp_mode) {
+            case 'relative':
+                return sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($timestamp), current_time('timestamp')));
+            break;
+            case 'actual':
+                return $this->format_date($timestamp, true);
+            break;
+        }
     }
 
     function get_post_author($post_id) {
@@ -1700,6 +1761,9 @@ class AsgarosForum {
             }
         }
 
+        // Show report button.
+        $menu .= $this->reports->render_report_button($post_id, $this->current_topic);
+        
         $menu = (!empty($menu)) ? '<div class="forum-post-menu">'.$menu.'</div>' : $menu;
         $menu = apply_filters('asgarosforum_filter_post_menu', $menu);
 

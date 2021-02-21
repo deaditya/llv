@@ -208,6 +208,19 @@ if (!defined('ABSPATH')) exit;
                                 </select>
                             </td>
                         </tr>
+
+                        <tr>
+                            <th>
+                                <label for="activity_timestamp_format"><?php _e('Format for activity-timestamps:', 'asgaros-forum'); ?></label>
+                                <span class="description"><?php _e('Defines if activity-timestamps are shown in its relative or actual format.', 'asgaros-forum'); ?></span>
+                            </th>
+                            <td>
+                                <select name="activity_timestamp_format" id="activity_timestamp_format">';
+                                    <option value="relative" <?php if ($this->asgarosforum->options['activity_timestamp_format'] == 'relative') { echo 'selected="selected"'; } ?>><?php _e('Relative', 'asgaros-forum'); ?></option>
+                                    <option value="actual" <?php if ($this->asgarosforum->options['activity_timestamp_format'] == 'actual') { echo 'selected="selected"'; } ?>><?php _e('Actual', 'asgaros-forum'); ?></option>
+                                </select>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 
@@ -222,6 +235,13 @@ if (!defined('ABSPATH')) exit;
                         <tr>
                             <th><label for="enable_reactions"><?php _e('Enable reactions', 'asgaros-forum'); ?></label></th>
                             <td><input type="checkbox" name="enable_reactions" id="enable_reactions" <?php checked(!empty($this->asgarosforum->options['enable_reactions'])); ?>></td>
+                        </tr>
+                        <tr>
+                            <th>
+                                <label for="reactions_show_names"><?php _e('Show usernames in reactions', 'asgaros-forum'); ?></label>
+                                <span class="description"><?php _e('If enabled, the names of users who have reacted to a post are shown.', 'asgaros-forum'); ?></span>
+                            </th>
+                            <td><input type="checkbox" name="reactions_show_names" id="reactions_show_names" <?php checked(!empty($this->asgarosforum->options['reactions_show_names'])); ?>></td>
                         </tr>
                         <tr>
                             <th><label for="enable_search"><?php _e('Enable search functionality', 'asgaros-forum'); ?></label></th>
@@ -583,6 +603,10 @@ if (!defined('ABSPATH')) exit;
                         <tr class="memberslist-option" <?php if (!$membersListOption) { echo 'style="display: none;"'; } ?>>
                             <th><label for="memberslist_loggedin_only"><?php _e('Show members list to logged-in users only', 'asgaros-forum'); ?></label></th>
                             <td><input type="checkbox" name="memberslist_loggedin_only" id="memberslist_loggedin_only" <?php checked(!empty($this->asgarosforum->options['memberslist_loggedin_only'])); ?>></td>
+                        </tr>
+                        <tr class="memberslist-option" <?php if (!$membersListOption) { echo 'style="display: none;"'; } ?>>
+                            <th><label for="memberslist_filter_siteadmins"><?php _e('Hide site-admins in memberslist', 'asgaros-forum'); ?></label></th>
+                            <td><input type="checkbox" name="memberslist_filter_siteadmins" id="memberslist_filter_siteadmins" <?php checked(!empty($this->asgarosforum->options['memberslist_filter_siteadmins'])); ?>></td>
                         </tr>
                         <tr class="memberslist-option" <?php if (!$membersListOption) { echo 'style="display: none;"'; } ?>>
                             <th><label for="members_per_page"><?php _e('Members per page:', 'asgaros-forum'); ?></label></th>

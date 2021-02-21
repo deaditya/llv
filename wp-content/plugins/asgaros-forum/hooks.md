@@ -247,7 +247,7 @@ Make some action after the content header
 ## Filters
 
 - asgarosforum_filter_login_message
-- asgarosforum_filter_post_username
+- [asgarosforum_filter_post_username](#asgarosforum_filter_post_username)
 - asgarosforum_filter_post_content
 - asgarosforum_filter_post_shortcodes
 - asgarosforum_filter_editor_settings
@@ -288,6 +288,7 @@ Make some action after the content header
 - asgarosforum_widget_recent_posts_custom_content
 - asgarosforum_widget_recent_topics_custom_content
 - asgarosforum_title_separator
+- [asgarosforum_filter_profile_row](#asgarosforum_filter_profile_row)
 - asgarosforum_signature
 - [asgarosforum_filter_meta_post_type](#asgarosforum_filter_meta_post_type)
 - [asgarosforum_filter_upload_folder](#asgarosforum_filter_upload_folder)
@@ -295,6 +296,44 @@ Make some action after the content header
 ### asgarosforum_filter_login_message
 
 ### asgarosforum_filter_post_username
+
+#### Description
+Change Username in a post. You can also use it to add some further information after the username
+
+#### Usage
+
+```php
+<?php
+   add_filter('asgarosforum_filter_post_username', 'function_name', 10, 2);
+?>
+```
+
+#### Examples
+
+```php
+<?php
+   // Add filter to customize username
+   add_filter('asgarosforum_filter_post_username', 'add_custom_value', 10, 2);
+
+   function add_custom_value($username, $user_id){
+      // Get meta data of user
+      $user_meta=get_userdata($user_id);
+      
+      // Get user roles of user and create string
+      $user_roles= implode(', ', $user_meta->roles) . " ";
+     
+      // Add user role to username
+      $username = $username . $user_roles;
+      
+      // Return string to render
+      return $username;
+   }
+?>
+```
+
+#### Source
+
+[post-element.php](includes/post-element.php)
 
 ### asgarosforum_filter_post_content
 
@@ -538,6 +577,81 @@ Names of the standard menu entries:
 ### asgarosforum_widget_recent_topics_custom_content
 
 ### asgarosforum_title_separator
+
+### asgarosforum_filter_profile_row
+
+#### Description
+Filters the rows in the Asgaros Forum Profile before they are getting rendered
+
+#### Parameters
+
+##### $profile_rows
+
+Array with profile rows as arrays:
+
+```php
+$profile_rows = array(
+      'name' => array(
+                    'title'     =>  'Title of profile row'
+                    'value'     =>  'Value of profile row',
+                    'type'     =>  '',  // optional type of profile row. 'usergroup' or ''
+                ),
+);
+```
+
+Names of the standard rows:
+
+| name         | Description          |
+|--------------|----------------------|
+| first_name   | First name of user   |
+| usergroup    | Group of user        |
+| website      | Website of user      |
+| last_seen    | Last seen of user    |
+| member_since | User is member since |
+| bio          | Excerpt of users bio |
+| signature    | Users signature      |
+
+
+##### $userData
+
+WP_User object of the profile to render
+
+#### Usage
+
+```php
+<?php
+    add_filter ( 'asgarosforum_filter_profile_row', 'function_name', 10, 2);
+?>
+```
+
+#### Examples
+
+```php
+<?php
+    // Add filter to add custom profile row
+    add_filter ( 'asgarosforum_filter_profile_row', 'my_custom_profile_row', 10, 2);
+
+    // Function to customize the forum menu
+    function my_custom_profile_row( $profile_rows, $userData){
+
+        // Create new profile row
+        $profile_row = array(
+                          'title'    =>  'Last Name',
+                          'value'    =>  $userData->last_name,
+                      );
+
+
+        // Add row at beginning of the user profile
+        array_unshift( $profile_rows, $profile_row);
+
+        return $profile_rows;
+    }
+?>
+```
+
+#### Source
+
+[forum-profile.php](includes/forum-profile.php)
 
 ### asgarosforum_signature
 

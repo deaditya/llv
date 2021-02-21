@@ -68,12 +68,17 @@ class AsgarosForumUnread {
     // Marks a topic as read when an user opens it.
     public function mark_topic_read() {
         if ($this->asgarosforum->current_topic) {
-            $this->excluded_items[$this->asgarosforum->current_topic] = (int) $this->asgarosforum->get_lastpost_in_topic($this->asgarosforum->current_topic)->id;
+            $lastpost = $this->asgarosforum->get_lastpost_in_topic($this->asgarosforum->current_topic);
 
-            if ($this->user_id) {
-                update_user_meta($this->user_id, 'asgarosforum_unread_exclude', $this->excluded_items);
-            } else {
-                setcookie('asgarosforum_unread_exclude', maybe_serialize($this->excluded_items), 2147483647, COOKIEPATH, COOKIE_DOMAIN);
+            // Ensure that a lastpost exists. This is a required check in case a topic is empty due to problems during post-creation.
+            if (!empty($lastpost)) {
+                $this->excluded_items[$this->asgarosforum->current_topic] = (int) $lastpost->id;
+
+                if ($this->user_id) {
+                    update_user_meta($this->user_id, 'asgarosforum_unread_exclude', $this->excluded_items);
+                } else {
+                    setcookie('asgarosforum_unread_exclude', maybe_serialize($this->excluded_items), 2147483647, COOKIEPATH, COOKIE_DOMAIN);
+                }
             }
         }
     }
@@ -240,7 +245,7 @@ class AsgarosForumUnread {
                     echo '<div class="topic-name">';
                         $first_unread_post = $this->asgarosforum->content->get_first_unread_post($topic->topic_id);
                         $link = $this->asgarosforum->rewrite->get_post_link($first_unread_post->id, $first_unread_post->parent_id);
-                        $human_time_diff = sprintf(__('%s ago', 'asgaros-forum'), human_time_diff(strtotime($first_unread_post->date), current_time('timestamp')));
+                        $human_time_diff = $this->asgarosforum->get_activity_timestamp($first_unread_post->date);
 
                         if ($this->asgarosforum->is_topic_sticky($topic->topic_id)) {
                             echo '<span class="topic-icon fas fa-thumbtack"></span>';

@@ -319,7 +319,8 @@ class AsgarosForumAppearance {
 			$custom_css .= '#af-wrapper .action-panel-description,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #forum-breadcrumbs,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #forum-breadcrumbs a,'.PHP_EOL;
-			$custom_css .= '#af-wrapper .forum-post-date,'.PHP_EOL;
+            $custom_css .= '#af-wrapper .forum-post-date,'.PHP_EOL;
+            $custom_css .= '#af-wrapper .forum-post-date a,'.PHP_EOL;
 			$custom_css .= '#af-wrapper .post-footer,'.PHP_EOL;
 			$custom_css .= '#af-wrapper .post-footer a,'.PHP_EOL;
 			$custom_css .= '#af-wrapper .signature,'.PHP_EOL;
@@ -369,7 +370,8 @@ class AsgarosForumAppearance {
 			$custom_css .= '#af-wrapper #profile-layer,'.PHP_EOL;
 			$custom_css .= '#af-wrapper .spoiler .spoiler-head,'.PHP_EOL;
 			$custom_css .= '#af-wrapper .report-content,'.PHP_EOL;
-			$custom_css .= '#af-wrapper #poll-panel,'.PHP_EOL;
+            $custom_css .= '#af-wrapper #poll-panel,'.PHP_EOL;
+            $custom_css .= '#af-wrapper .post-reactions-summary .reaction-names,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #profile-content {'.PHP_EOL;
 			    $custom_css .= 'background-color: '.$this->options['custom_background_color_alt'].' !important;'.PHP_EOL;
 			$custom_css .= '}'.PHP_EOL;
@@ -414,7 +416,8 @@ class AsgarosForumAppearance {
 			$custom_css .= '#af-wrapper #poll-options,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #poll-panel,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #poll-panel #poll-headline,'.PHP_EOL;
-			$custom_css .= '#af-wrapper #poll-results .poll-result-bar,'.PHP_EOL;
+            $custom_css .= '#af-wrapper #poll-results .poll-result-bar,'.PHP_EOL;
+            $custom_css .= '#af-wrapper .post-reactions-summary .reaction-names,'.PHP_EOL;
 			$custom_css .= '#af-wrapper #usergroups-filter {'.PHP_EOL;
 			    $custom_css .= 'border-color: '.$this->options['custom_border_color'].' !important;'.PHP_EOL;
 			$custom_css .= '}'.PHP_EOL;

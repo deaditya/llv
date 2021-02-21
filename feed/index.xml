@@ -12,12 +12,12 @@
 	<atom:link href="https://deaditya.github.io/llv/feed/" rel="self" type="application/rss+xml" />
 	<link>https://deaditya.github.io/llv</link>
 	<description>Staging Website</description>
-	<lastBuildDate>Sat, 16 Jan 2021 21:02:40 +0000</lastBuildDate>
+	<lastBuildDate>Sun, 21 Feb 2021 07:35:38 +0000</lastBuildDate>
 	<language>en-US</language>
 	<sy:updatePeriod>
 	hourly	</sy:updatePeriod>
 	<sy:updateFrequency>
 	1	</sy:updateFrequency>
-	<generator>https://wordpress.org/?v=5.6</generator>
+	<generator>https://wordpress.org/?v=5.6.1</generator>
 </channel>
 </rss>
